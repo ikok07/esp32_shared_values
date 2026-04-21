@@ -4,6 +4,8 @@
 
 #include "shared_values.h"
 
+#include <string.h>
+
 SHVAL_HandleTypeDef SHVAL_Init(SHVAL_ConfigTypeDef *Config) {
     SHVAL_HandleTypeDef handle = {
         .Value = Config->InitialValue,
@@ -31,6 +33,53 @@ SHVAL_ErrorTypeDef SHVAL_GetValue(const SHVAL_HandleTypeDef *hshval, uint32_t *V
 SHVAL_ErrorTypeDef SHVAL_SetValue(SHVAL_HandleTypeDef *hshval, uint32_t Value, uint32_t TimeoutMS) {
     if (xSemaphoreTake(hshval->Mutex, pdMS_TO_TICKS(TimeoutMS))) {
         hshval->Value = Value;
+
+        if (hshval->SubscribersQueue) {
+            // Queue is reset. All previous values are invalid
+            xQueueReset(hshval->SubscribersQueue);
+            for (int i = 0; i < hshval->SubscribersCount; i++) {
+                xQueueSend(hshval->SubscribersQueue, &Value, portMAX_DELAY);
+            }
+        }
+
+        xSemaphoreGive(hshval->Mutex);
+        return SHVAL_ERROR_OK;
+    } else {
+        return SHVAL_ERROR_VAL_UNAVAILABLE;
+    }
+}
+
+SHVAL_PointerHandleTypeDef SHVAL_PointerInit(SHVAL_PointerConfigTypeDef *Config) {
+    SHVAL_PointerHandleTypeDef handle = {
+        .Value = Config->InitialValue,
+        .ValueLen = Config->ValueLen,
+        .Mutex = xSemaphoreCreateMutex()
+    };
+
+    if (Config->SubscribersQueueSize > 0) {
+        handle.SubscribersQueue = xQueueCreate(Config->SubscribersQueueSize, sizeof(uint32_t));
+        handle.SubscribersCount = Config->SubscribersQueueSize;
+    }
+
+    return handle;
+}
+
+SHVAL_ErrorTypeDef SHVAL_PointerGetValue(const SHVAL_PointerHandleTypeDef *hshval, void *Value, uint32_t *ValueLen,
+    uint32_t TimeoutMS) {
+    if (xSemaphoreTake(hshval->Mutex, pdMS_TO_TICKS(TimeoutMS))) {
+        memcpy(Value, hshval->Value, hshval->ValueLen);
+        *ValueLen = hshval->ValueLen;
+        xSemaphoreGive(hshval->Mutex);
+        return SHVAL_ERROR_OK;
+    } else {
+        return SHVAL_ERROR_VAL_UNAVAILABLE;
+    }
+}
+
+SHVAL_ErrorTypeDef SHVAL_PointerSetValue(SHVAL_PointerHandleTypeDef *hshval, void *Value,
+    uint32_t TimeoutMS) {
+    if (xSemaphoreTake(hshval->Mutex, pdMS_TO_TICKS(TimeoutMS))) {
+        memcpy(hshval->Value, Value, hshval->ValueLen);
 
         if (hshval->SubscribersQueue) {
             // Queue is reset. All previous values are invalid

@@ -27,8 +27,27 @@ typedef struct {
     uint32_t SubscribersCount;
 } SHVAL_HandleTypeDef;
 
+typedef struct {
+    void *InitialValue;
+    uint32_t ValueLen;
+    uint32_t SubscribersQueueSize;
+} SHVAL_PointerConfigTypeDef;
+
+typedef struct {
+    void *Value;
+    uint32_t ValueLen;
+    SemaphoreHandle_t Mutex;
+
+    QueueHandle_t SubscribersQueue;
+    uint32_t SubscribersCount;
+} SHVAL_PointerHandleTypeDef;
+
 SHVAL_HandleTypeDef SHVAL_Init(SHVAL_ConfigTypeDef *Config);
 SHVAL_ErrorTypeDef SHVAL_GetValue(const SHVAL_HandleTypeDef *hshval, uint32_t *Value, uint32_t TimeoutMS);
 SHVAL_ErrorTypeDef SHVAL_SetValue(SHVAL_HandleTypeDef *hshval, uint32_t Value, uint32_t TimeoutMS);
+
+SHVAL_PointerHandleTypeDef SHVAL_PointerInit(SHVAL_PointerConfigTypeDef *Config);
+SHVAL_ErrorTypeDef SHVAL_PointerGetValue(const SHVAL_PointerHandleTypeDef *hshval, void *Value, uint32_t *ValueLen, uint32_t TimeoutMS);
+SHVAL_ErrorTypeDef SHVAL_PointerSetValue(SHVAL_PointerHandleTypeDef *hshval, void *Value, uint32_t TimeoutMS);
 
 #endif //ESP32S3_BLE_SHARED_VALUES_H
