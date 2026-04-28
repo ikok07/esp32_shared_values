@@ -44,11 +44,13 @@ typedef struct {
 } SHVAL_PointerHandleTypeDef;
 
 SHVAL_HandleTypeDef SHVAL_Init(SHVAL_ConfigTypeDef *Config);
+uint8_t SHVAL_Exists(SHVAL_HandleTypeDef *hshval);
 SHVAL_ErrorTypeDef SHVAL_GetValue(const SHVAL_HandleTypeDef *hshval, uint32_t *Value, uint32_t TimeoutMS);
 SHVAL_ErrorTypeDef SHVAL_SetValue(SHVAL_HandleTypeDef *hshval, uint32_t Value, uint32_t TimeoutMS);
 SHVAL_ErrorTypeDef SHVAL_WaitForValue(SHVAL_HandleTypeDef *hshval, EventBits_t BitToWait, uint32_t *Value, TickType_t TicksToWait);
 
 SHVAL_PointerHandleTypeDef SHVAL_PointerInit(SHVAL_PointerConfigTypeDef *Config);
+uint8_t SHVAL_PointerExists(SHVAL_PointerHandleTypeDef *hshval);
 SHVAL_ErrorTypeDef SHVAL_PointerGetValue(const SHVAL_PointerHandleTypeDef *hshval, void *Value, uint32_t *ValueLen, uint32_t TimeoutMS);
 SHVAL_ErrorTypeDef SHVAL_PointerSetValue(SHVAL_PointerHandleTypeDef *hshval, void *Value, uint32_t TimeoutMS);
 SHVAL_ErrorTypeDef SHVAL_PointerWaitForValue(SHVAL_PointerHandleTypeDef *hshval, EventBits_t BitToWait, void *Value, uint32_t *ValueLen, TickType_t TicksToWait);
