@@ -53,7 +53,7 @@ SHVAL_ErrorTypeDef SHVAL_GetValue(const SHVAL_HandleTypeDef *hshval, uint32_t *V
  */
 SHVAL_ErrorTypeDef SHVAL_SetValue(SHVAL_HandleTypeDef *hshval, uint32_t Value, uint32_t TimeoutMS) {
     if (xSemaphoreTake(hshval->Mutex, pdMS_TO_TICKS(TimeoutMS))) {
-        xEventGroupClearBits(hshval->EventGroup, BIT0);
+        xEventGroupClearBits(hshval->EventGroup, hshval->SubscribersEventBits);
 
         hshval->Value = Value;
 
